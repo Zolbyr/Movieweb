@@ -1,150 +1,58 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Play, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+import { Button, Link, Skeleton } from "@heroui/react";
+import Image from "next/image";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Pause, Play, Star } from "lucide-react";
+import { imageUrl, rating, type MovieResults } from "../../lib/movies";
+import { useMovies } from "./useMovies";
+import { ErrorState } from "./MovieGrid";
+import { TrailerButton } from "./TrailerButton";
+import { MovieReviews } from "./MovieReviews";
 
-const TMDB_TOKEN = process.env.NEXT_PUBLIC_TMDB_TOKEN!
-
-type Movie = {
-  id: number;
-  title: string;
-  overview: string;
-  backdrop_path: string;
-  vote_average: number;
-};
-
-export const MovieSlider = () => {
-  const [movies, setMovies] = useState<Movie[]>([]);
+export function MovieSlider() {
+  const { data, error, loading, retry } = useMovies<MovieResults>("movie/popular?language=en-US&page=1");
+  const movies = data?.results?.slice(0, 5) || [];
   const [index, setIndex] = useState(0);
-  const [trailerKey, setTrailerKey] = useState<string | null>(null);
-  const [showTrailer, setShowTrailer] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [trailerOpen, setTrailerOpen] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(true);
+  const movie = movies[index % (movies.length || 1)];
 
   useEffect(() => {
-    fetch("https://api.themoviedb.org/3/movie/upcoming?language=en-US&page=1", {
-      headers: { accept: "application/json", Authorization: TMDB_TOKEN },
-    })
-      .then((r) => r.json())
-      .then((json) => setMovies(json.results || []))
-      .catch(console.error);
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReducedMotion(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
   }, []);
-
-  const fetchTrailer = async (movieId: number) => {
-    try {
-      const res = await fetch(
-        `https://api.themoviedb.org/3/movie/${movieId}/videos?language=en-US`,
-        { headers: { accept: "application/json", Authorization: TMDB_TOKEN } }
-      );
-      const data = await res.json();
-      const trailer = data.results?.find(
-        (v: { type: string; site: string; key: string }) =>
-          v.type === "Trailer" && v.site === "YouTube"
-      );
-      setTrailerKey(trailer?.key || null);
-      setShowTrailer(true);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const next = useCallback(
-    () => setIndex((p) => (p + 1) % movies.length),
-    [movies.length]
-  );
-  const prev = () =>
-    setIndex((p) => (p - 1 + movies.length) % movies.length);
-
   useEffect(() => {
-    if (!movies.length || showTrailer) return;
-    const t = setInterval(next, 5000);
-    return () => clearInterval(t);
-  }, [movies.length, next, showTrailer]);
+    if (movies.length < 2 || paused || hovered || focused || trailerOpen || reducedMotion) return;
+    const timer = setInterval(() => { if (!document.hidden) setIndex((previous) => (previous + 1) % movies.length); }, 6500);
+    return () => clearInterval(timer);
+  }, [movies.length, paused, hovered, focused, trailerOpen, reducedMotion]);
 
-  if (!movies.length)
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-black">
-        <p className="text-white animate-pulse">Loading...</p>
+  if (loading) return <div className="featured-layout" aria-busy="true"><section className="hero hero-loading" aria-label="Онцлох киноны мэдээллийг ачаалж байна"><div className="hero-fallback"><p className="hero-kicker">Киноны сангаас онцлох</p><Skeleton className="hero-title-skeleton" /><p>Киноны мэдээллийг ачаалж байна…</p></div></section><aside className="movie-reviews" aria-label="Сэтгэгдлүүдийг ачаалж байна"><Skeleton className="skeleton-title" /><Skeleton className="reviews-loading-block" /><Skeleton className="reviews-loading-block" /></aside></div>;
+  if (error || !movie) return <section className="hero hero-error"><div className="hero-fallback"><p className="hero-kicker">Киноны сангаас онцлох</p><ErrorState message={error || "Онцлох киноны мэдээлэл олдсонгүй."} retry={retry} /></div></section>;
+
+  return <div className="featured-layout" onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setFocused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setFocused(false); }}><section className="hero" aria-label="Онцлох кинонууд" aria-roledescription="Киноны слайд">
+    <div className="hero-images" aria-hidden="true">
+      {movies.map((item, slide) => <div key={item.id} className={"hero-image " + (slide === index % movies.length ? "is-active" : "")}>{imageUrl(item.backdrop_path, "w1280") && <Image src={imageUrl(item.backdrop_path, "w1280")!} alt="" fill sizes="(max-width: 1376px) 100vw, 1280px" />}</div>)}
+    </div>
+    <div className="hero-shade" />
+    <div className="hero-layout">
+      <div className="hero-content" key={movie.id}>
+        <p className="hero-kicker">Киноны сангаас онцлох <span className="kicker-divider" /> TMDB</p>
+        <h1 className="hero-title">{movie.title}</h1>
+        <div className="hero-meta"><span className="hero-score"><Star size={14} />{rating(movie.vote_average)}<small>/10</small></span><span className="meta-dot" />{movie.release_date?.slice(0, 4) || "Нээлтийн огноо тодорхойгүй"}</div>
+        {movie.overview && <p className="hero-overview">{movie.overview}</p>}
+        <div className="hero-actions"><TrailerButton key={movie.id} movieId={movie.id} title={movie.title} onOpenChange={setTrailerOpen} /><Link href={"/movie/" + movie.id} className="button button-glass">Дэлгэрэнгүй <ArrowUpRight size={16} /></Link></div>
       </div>
-    );
-
-  const movie = movies[index];
-
-  return (
-    <div className="relative w-full h-full overflow-hidden">
-      {/* Backdrop */}
-      <img
-        src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
-        className="w-full h-full object-cover"
-        alt={movie.title}
-      />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-      {showTrailer && (
-        <div className="absolute inset-0 z-30 bg-black/90 flex items-center justify-center">
-          <button
-            onClick={() => { setShowTrailer(false); setTrailerKey(null); }}
-            className="absolute top-4 right-4 text-white bg-black/50 hover:bg-black/80 rounded-full p-2 transition z-40"
-          >
-            <X size={20} />
-          </button>
-          {trailerKey ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
-              title="Trailer"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              className="w-[85%] h-[85%] rounded-xl"
-            />
-          ) : (
-            <p className="text-white">Trailer байхгүй байна.</p>
-          )}
-        </div>
-      )}
-
-      <div className="absolute bottom-14 left-10 text-white max-w-lg z-20">
-        <p className="text-xs uppercase tracking-widest text-gray-300 mb-2">Now Playing</p>
-        <h2 className="text-4xl font-bold mb-3 drop-shadow">{movie.title}</h2>
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-yellow-400">⭐</span>
-          <span className="text-sm font-semibold">{movie.vote_average.toFixed(1)}</span>
-          <span className="text-xs text-gray-400">/10</span>
-        </div>
-        <p className="text-sm text-gray-300 leading-relaxed mb-5 line-clamp-3">
-          {movie.overview}
-        </p>
-        <Button
-          className="h-10 px-6 gap-2 text-sm"
-          onClick={() => fetchTrailer(movie.id)}
-        >
-          <Play size={15} /> Watch Trailer
-        </Button>
-      </div>
-
-      <button
-        onClick={prev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white flex items-center justify-center transition"
-      >
-        <ChevronLeft size={20} />
-      </button>
-      <button
-        onClick={next}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white flex items-center justify-center transition"
-      >
-        <ChevronRight size={20} />
-      </button>
-
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-        {movies.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => setIndex(i)}
-            className={`rounded-full transition-all duration-300 ${
-              i === index ? "bg-white w-6 h-2" : "bg-white/40 w-2 h-2"
-            }`}
-          />
-        ))}
+      <div className="hero-bottom"><div className="hero-position"><strong>{String(index % movies.length + 1).padStart(2, "0")}</strong><span>/ {String(movies.length).padStart(2, "0")}</span><div className="slide-dots">{movies.map((item, slide) => <Button variant="ghost" isIconOnly key={item.id} className={slide === index % movies.length ? "active" : ""} onPress={() => setIndex(slide)} aria-label={item.title + " киног харуулах"} aria-pressed={slide === index % movies.length} />)}</div></div>
+        <div className="hero-controls"><Button variant="ghost" isIconOnly className="hero-control pause-control" aria-label={paused ? "Автоматаар солихыг үргэлжлүүлэх" : "Автоматаар солихыг түр зогсоох"} aria-pressed={paused} onPress={() => setPaused(!paused)}>{paused ? <Play size={15} /> : <Pause size={15} />}</Button><Button variant="ghost" isIconOnly className="hero-control" aria-label="Өмнөх онцлох киног харуулах" onPress={() => setIndex((previous) => (previous - 1 + movies.length) % movies.length)}><ChevronLeft size={20} /></Button><Button variant="ghost" isIconOnly className="hero-control" aria-label="Дараагийн онцлох киног харуулах" onPress={() => setIndex((previous) => (previous + 1) % movies.length)}><ChevronRight size={20} /></Button></div>
       </div>
     </div>
-  );
-};
+  </section><MovieReviews key={movie.id} movieId={movie.id} title={movie.title} compact /></div>;
+}

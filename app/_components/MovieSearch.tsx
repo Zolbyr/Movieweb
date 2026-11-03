@@ -1,115 +1,76 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect, useId } from "react";
+import { Button, Link, SearchField, Spinner } from "@heroui/react";
+import Image from "next/image";
+import { Search, ArrowUpRight, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { imageUrl, type MovieResults } from "../../lib/movies";
+import { getMovies } from "./useMovies";
 
-const TMDB_TOKEN = process.env.NEXT_PUBLIC_TMDB_TOKEN!
-
-type Movie = {
-  id: number;
-  title: string;
-  poster_path: string | null;
-  release_date: string;
-};
-
-export const MovieSearch = () => {
+export function MovieSearch() {
   const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState<Movie[]>([]);
+  const [result, setResult] = useState<MovieResults | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const wrapper = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLInputElement>(null);
+  const listId = useId();
+  const pathname = usePathname();
   const router = useRouter();
+  const submit = (value: string) => {
+    if (!value.trim()) return;
+    setOpen(false);
+    input.current?.blur();
+    router.push("/search?q=" + encodeURIComponent(value.trim()));
+  };
 
+  useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+    const handler = (event: MouseEvent) => {
+      if (!wrapper.current?.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    if (value.length < 2) { setMovies([]); setOpen(false); return; }
-    try {
-      const res = await fetch(
-        `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(value)}&language=en-US&page=1&include_adult=false`,
-        { headers: { accept: "application/json", Authorization: TMDB_TOKEN } }
-      );
-      const data = await res.json();
-      setMovies(data.results?.slice(0, 6) || []);
-      setOpen(true);
-    } catch (err) { console.error(err); }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && query.trim()) {
-      setOpen(false);
-      router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-    }
-  };
-
-  // ✅ Dropdown item дарахад movie detail руу очно
-  const handleSelect = (id: number) => {
-    setOpen(false);
-    setQuery("");
-    setMovies([]);
-    router.push(`/movie/${id}`);
-  };
+  useEffect(() => {
+    const controller = new AbortController();
+    setResult(null);
+    setError("");
+    if (query.trim().length < 2) { setLoading(false); return () => controller.abort(); }
+    setLoading(true);
+    const timer = setTimeout(() => {
+      getMovies<MovieResults>("search/movie?query=" + encodeURIComponent(query.trim()) + "&page=1", controller.signal)
+        .then((data) => { if (!controller.signal.aborted) { setResult(data); setLoading(false); } })
+        .catch((err: unknown) => { if (!controller.signal.aborted) { setError(err instanceof Error ? err.message : "Хайлт хийх боломжгүй байна. Дахин оролдоно уу."); setLoading(false); } });
+    }, 300);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [query]);
 
   return (
-    <div className="relative w-[220px]" ref={wrapperRef}>
-      <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
-        <Input
-          type="text"
-          value={query}
-          onChange={handleSearch}
-          onKeyDown={handleKeyDown}
-          onFocus={() => movies.length > 0 && setOpen(true)}
-          placeholder="Search..."
-          className="pl-8 h-9 text-sm"
-        />
-      </div>
-
-      {open && movies.length > 0 && (
-        <div className="absolute top-full mt-1 left-0 right-0 bg-background border rounded-lg shadow-xl z-50 overflow-hidden">
-          {movies.map((m) => (
-            <div
-              key={m.id}
-              className="flex items-center gap-3 px-3 py-2 hover:bg-accent cursor-pointer transition"
-              onClick={() => handleSelect(m.id)}
-            >
-              {m.poster_path ? (
-                <img
-                  src={`https://image.tmdb.org/t/p/w92${m.poster_path}`}
-                  alt={m.title}
-                  className="w-8 h-11 object-cover rounded flex-shrink-0"
-                />
-              ) : (
-                <div className="w-8 h-11 bg-muted rounded flex-shrink-0 flex items-center justify-center text-xs text-muted-foreground">?</div>
-              )}
-              <div className="min-w-0">
-                <p className="text-sm font-medium line-clamp-1">{m.title}</p>
-                <p className="text-xs text-muted-foreground">{m.release_date?.slice(0, 4) || "—"}</p>
-              </div>
-            </div>
-          ))}
-          <div
-            className="px-3 py-2 text-xs text-center text-muted-foreground hover:bg-accent cursor-pointer border-t transition"
-            onClick={() => {
-              setOpen(false);
-              router.push(`/search?q=${encodeURIComponent(query.trim())}`);
-            }}
-          >
-            See all results for "{query}" →
-          </div>
+    <div className="search-wrapper" ref={wrapper} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
+      <SearchField className="movie-search-field" aria-label="Киноны нэрээр хайх" value={query} onChange={(value) => { setQuery(value); setOpen(true); }} onSubmit={submit}>
+        <SearchField.Group>
+          <Button variant="ghost" isIconOnly className="search-submit" aria-label="Кино хайх" onPress={() => submit(query)}><Search size={17} aria-hidden="true" /></Button>
+          <SearchField.Input ref={input} aria-expanded={open && query.trim().length >= 2} aria-controls={open && query.trim().length >= 2 ? listId : undefined} autoComplete="off" placeholder="Киноны нэрээр хайх" onFocus={() => setOpen(true)} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }} />
+          <SearchField.ClearButton className="search-clear" aria-label="Хайлтын үгийг арилгах" onPress={() => setOpen(false)}><X size={14} /></SearchField.ClearButton>
+        </SearchField.Group>
+      </SearchField>
+      {open && query.trim().length >= 2 && <div className="search-dropdown" id={listId}>
+        <p className="dropdown-label">Кинонууд</p>
+        <div aria-live="polite">
+          {loading ? <p className="search-message"><Spinner size="sm" /> Хайж байна…</p>
+            : error ? <p className="search-message">{error}</p>
+            : result && !result.results?.length ? <p className="search-message">Кино олдсонгүй. Өөр нэрээр хайна уу.</p>
+            : result?.results?.slice(0, 5).map((movie) => <Link key={movie.id} className="search-result" href={"/movie/" + movie.id} onPress={() => { setOpen(false); setQuery(""); }}>
+              {imageUrl(movie.poster_path, "w92") ? <Image src={imageUrl(movie.poster_path, "w92")!} alt="" width={34} height={48} /> : <span className="search-poster-fallback"><Search size={16} /></span>}
+              <span><strong>{movie.title}</strong><small>{movie.release_date?.slice(0, 4) || "Нээлтийн огноо тодорхойгүй"}</small></span><ArrowUpRight size={15} />
+            </Link>)}
         </div>
-      )}
+        <Link href={"/search?q=" + encodeURIComponent(query.trim())} className="all-results" onPress={() => setOpen(false)}>Бүх үр дүнг харах <ArrowUpRight size={14} /></Link>
+      </div>}
     </div>
   );
-};
+}

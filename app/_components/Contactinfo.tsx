@@ -1,50 +1,13 @@
-export const ContactInfo = () => {
-  return (
-    <footer className="w-full bg-indigo-700 mt-10">
-      <div className="max-w-screen-2xl mx-auto px-6 py-10 grid grid-cols-4 gap-8 text-white">
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <span>🎬</span>
-            <span className="font-bold text-lg">Movie Z</span>
-          </div>
-          <p className="text-sm text-indigo-200 leading-relaxed">
-          © 2026 Movie Z. All Rights Reserved.
-          </p>
-        </div>
-        <div>
-          <h4 className="font-semibold mb-3 text-sm">Contact information</h4>
-          <ul className="space-y-2 text-sm text-indigo-200">
-          <p className="text-sm text-indigo-200 leading-relaxed">
-           Phone: +976 (11) 123-4567
-          </p>
-                    <p className="text-sm text-indigo-200 leading-relaxed">
-          Email:
-          support@movieZ.com
-          </p>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-semibold mb-3 text-sm">Legal</h4>
-          <ul className="space-y-2 text-sm text-indigo-200">
-            <li className="hover:text-white cursor-pointer transition">Terms of Use</li>
-            <li className="hover:text-white cursor-pointer transition">Privacy Policy</li>
-            <li className="hover:text-white cursor-pointer transition">Cookie Policy</li>
-          </ul>
-        </div>
-        <div>
-          <h4 className="font-semibold mb-3 text-sm">Contact</h4>
-          <ul className="space-y-2 text-sm text-indigo-200">
-            <li className="hover:text-white cursor-pointer transition">About Us</li>
-            <li className="hover:text-white cursor-pointer transition">Careers</li>
-            <li className="hover:text-white cursor-pointer transition">Support</li>
-          </ul>
-        </div>
-      </div>
-      <div className="border-t border-indigo-600">
-        <div className="max-w-screen-2xl mx-auto px-6 py-4 flex justify-between text-xs text-indigo-300">
-          <span>© 2026 Movie Z. All Rights Reserved.</span>
-        </div>
-      </div>
-    </footer>
-  );
-};
+import { Link } from "@heroui/react";
+import { Clapperboard, ArrowUpRight } from "lucide-react";
+
+export function ContactInfo() {
+  return <footer className="site-footer">
+    <div className="site-container footer-main">
+      <div><Link href="/" className="brand"><span className="brand-icon"><Clapperboard size={21} /></span>Movie <span className="brand-z">Z</span></Link><p>Киноны мэдээлэл, үзвэрийн хуваарь,<br />кино театрын байршил — нэг дор.</p></div>
+      <nav aria-label="Киноны жагсаалт"><h2>Киноны жагсаалт</h2><Link href="/in-theaters">Дэлгэцнээ гарч буй кинонууд</Link><Link href="/popular">Эрэлттэй кинонууд</Link><Link href="/upcoming">Удахгүй гарах</Link><Link href="/top-rated">Өндөр үнэлгээтэй</Link><Link href="/cinemas">Кино театр хайх</Link></nav>
+      <div className="footer-note"><h2>Мэдээллийн эх сурвалж</h2><p>Үзвэрийн цаг, тасалбарын мэдээллийг Өргөө, Тэнгис, Prime Cineplex-ийн албан ёсны сайтаас шалгана уу.</p><a href="https://www.themoviedb.org/" target="_blank" rel="noreferrer">Киноны мэдээлэл: TMDB <ArrowUpRight size={13} /></a><p className="tmdb-notice">This product uses the TMDB API but is not endorsed or certified by TMDB.</p></div>
+    </div>
+    <div className="site-container footer-bottom"><span>© 2026 Movie Z</span><span>Монголын кино сонирхогчдод</span></div>
+  </footer>;
+}
