@@ -40,6 +40,6 @@ export function MovieReviews({ movieId, title, compact = false }: { movieId: num
           {source && <Card.Footer><Link href={source} target="_blank" rel="noreferrer" className="review-source">Сэтгэгдлийг бүтнээр нь унших <ArrowUpRight size={13} /></Link></Card.Footer>}
         </Card>;
       })}</div>}
-    <div className="reviews-footer"><p>Сэтгэгдлүүдийг эх хэлээр нь харуулав.</p>{!loading && !error && shown.length > 0 && (data?.total_results || 0) > size && <div className="review-controls"><Button isIconOnly variant="ghost" aria-label="Өмнөх сэтгэгдлүүд" onPress={() => changePage(-1)}><ChevronLeft size={16} /></Button><span aria-live="polite">{(sourcePage - 1) * 20 + current * size + 1}–{(sourcePage - 1) * 20 + current * size + shown.length} / {data?.total_results}</span><Button isIconOnly variant="ghost" aria-label="Дараагийн сэтгэгдлүүд" onPress={() => changePage(1)}><ChevronRight size={16} /></Button></div>}</div>
+    <div className="reviews-footer"><p>Эх хэлээр нь харуулав.</p>{!loading && !error && shown.length > 0 && (data?.total_results || 0) > size && <div className="review-controls"><Button isIconOnly variant="ghost" aria-label="Өмнөх сэтгэгдлүүд" onPress={() => changePage(-1)}><ChevronLeft size={16} /></Button><span aria-live="polite">{(sourcePage - 1) * 20 + current * size + 1}–{(sourcePage - 1) * 20 + current * size + shown.length} / {data?.total_results}</span><Button isIconOnly variant="ghost" aria-label="Дараагийн сэтгэгдлүүд" onPress={() => changePage(1)}><ChevronRight size={16} /></Button></div>}</div>
   </aside>;
 }

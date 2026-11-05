@@ -9,8 +9,10 @@ import { useMovies } from "./useMovies";
 import { ErrorState } from "./MovieGrid";
 import { TrailerButton } from "./TrailerButton";
 import { MovieReviews } from "./MovieReviews";
+import { useNavigationMotion } from "./NavigationMotion";
 
 export function MovieSlider() {
+  const { open: navigationOpen } = useNavigationMotion();
   const { data, error, loading, retry } = useMovies<MovieResults>("movie/popular?language=en-US&page=1");
   const movies = data?.results?.slice(0, 5) || [];
   const [index, setIndex] = useState(0);
@@ -29,10 +31,10 @@ export function MovieSlider() {
     return () => media.removeEventListener("change", update);
   }, []);
   useEffect(() => {
-    if (movies.length < 2 || paused || hovered || focused || trailerOpen || reducedMotion) return;
+    if (movies.length < 2 || paused || hovered || focused || trailerOpen || reducedMotion || navigationOpen) return;
     const timer = setInterval(() => { if (!document.hidden) setIndex((previous) => (previous + 1) % movies.length); }, 6500);
     return () => clearInterval(timer);
-  }, [movies.length, paused, hovered, focused, trailerOpen, reducedMotion]);
+  }, [movies.length, paused, hovered, focused, trailerOpen, reducedMotion, navigationOpen]);
 
   if (loading) return <div className="featured-layout" aria-busy="true"><section className="hero hero-loading" aria-label="Онцлох киноны мэдээллийг ачаалж байна"><div className="hero-fallback"><p className="hero-kicker">Киноны сангаас онцлох</p><Skeleton className="hero-title-skeleton" /><p>Киноны мэдээллийг ачаалж байна…</p></div></section><aside className="movie-reviews" aria-label="Сэтгэгдлүүдийг ачаалж байна"><Skeleton className="skeleton-title" /><Skeleton className="reviews-loading-block" /><Skeleton className="reviews-loading-block" /></aside></div>;
   if (error || !movie) return <section className="hero hero-error"><div className="hero-fallback"><p className="hero-kicker">Киноны сангаас онцлох</p><ErrorState message={error || "Онцлох киноны мэдээлэл олдсонгүй."} retry={retry} /></div></section>;

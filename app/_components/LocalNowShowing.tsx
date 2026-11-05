@@ -10,6 +10,7 @@ import { PosterSkeleton } from "./ui/PosterSkeleton";
 import { RevolverShelf } from "./RevolverShelf";
 import { CinemaBrand } from "./ui/CinemaBrand";
 import { useScrollScene } from "./useScrollScene";
+import { MovieRating } from "./ui/MovieRating";
 
 function LocalMovieCard({ movie, index }: { movie: LocalMovie; index: number }) {
   const [failed, setFailed] = useState(false);
@@ -20,6 +21,7 @@ function LocalMovieCard({ movie, index }: { movie: LocalMovie; index: number }) 
     </div>
     <Card.Title>{movie.title}</Card.Title>
     <Card.Description>{movie.rating && <Chip size="sm" variant="soft" className="age-rating">{movie.rating}</Chip>}Хуваарь, тасалбар <ArrowUpRight size={13} /></Card.Description>
+    <MovieRating />
   </Card>;
 }
 

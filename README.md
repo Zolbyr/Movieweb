@@ -1,37 +1,34 @@
 # Movie Z
 
-A responsive movie discovery site built with Next.js, React, and Tailwind CSS. Includes movie collections, genre filters, debounced search, detail pages, and trailer playback.
+Movie Z бол үзэх киногоо сонгож, хаана үзэхээ олоход туслах сайт юм. Киноны мэдээлэл болон Монголын кино театруудын байршлыг нэг дороос харах боломжтой.
 
-The interface uses HeroUI v3 (`@heroui/react` and `@heroui/styles`). Cards, tabs, search fields, selects, buttons, links, pagination, loading placeholders, and trailer dialogs share the cinema theme in `app/globals.css`. `app/heroui.css` imports the component styles used by the app. The client providers in `app/providers.tsx` connect accessible HeroUI navigation to the Next.js router, set the Mongolian locale, and manage the saved light/dark theme.
+[Сайтаар зочлох](https://movieweb-sandy.vercel.app)
 
-## Run locally
+Эндээс та:
 
-1. Run `npm install`.
-2. Copy `.env.example` to `.env.local` and set `TMDB_TOKEN` to your TMDB API Read Access Token. The existing local credential has already been migrated when available.
-3. Run `npm run dev` and open http://localhost:3000.
+- Өргөө, Тэнгис, Prime Cineplex-д гарч буй кинонуудыг харна.
+- Киногоо нэр, төрлөөр нь хайж, тайлбар, үнэлгээ, үзэгчдийн сэтгэгдлийг уншина.
+- Киноны трейлерийг үзнэ.
+- Өөрт ойр кино театр, түүнд хүрэх чиглэлийг олно.
+- Кино театрын албан ёсны сайт руу орж, үзвэрийн цаг болон тасалбараа шалгана.
 
-The token stays on the server. Client requests use `/api/tmdb`. Do not commit `.env.local`.
+Сайтыг гар утас, таблет, компьютер дээр ашиглаж болно. Бараан болон цайвар горимтой.
 
-## Checks
+Киноны мэдээллийг TMDB, үзвэрийн мэдээллийг кино театруудын албан ёсны сайтаас авдаг. Тасалбарын худалдан авалт тухайн кино театрын сайтаар хийгдэнэ.
 
-- `npm run typecheck` generates Next.js route types and checks TypeScript.
-- `npm run build` creates the production build.
-- `npm start` serves the production build.
+This product uses the TMDB API but is not endorsed or certified by TMDB.
 
-## Interface
+## Ашигласан технологиуд
 
-The layout adapts to mobile, tablet, and desktop. The default theme uses charcoal surfaces, white text, and restrained red accents; a light theme is available in the header. Featured films appear first with matching TMDB audience reviews beside them, followed by local cinema listings and movie collections. Reviews also appear beside the movie detail content, retain their original language, and link to the author's full TMDB review. The slideshow pauses while the feature or its reviews are hovered or focused. Empty and failed reviews have explicit states and never use invented comments.
-
-Collections use continuous horizontal carousels powered by Embla and its wheel-gestures plugin. Horizontal trackpad scrolling, touch swipes, and mouse dragging move the posters directly, with momentum and a subtle perspective curve that follows their position. Vertical gestures continue to scroll the page. The track loops when enough films are available and adapts to six, three, or two visible posters. Previous/next buttons and viewport arrow/Home/End keys provide alternatives. Reduced-motion preferences remove the perspective transforms and make button navigation immediate. Full category catalogs remain available through the navigation. Mongolian navigation, shared spacing, and a single type family keep the pages consistent. Trailer dialogs support Escape and keyboard focus management. Failed movie requests show a retry action; missing images and empty results have explicit fallbacks.
-
-The app self-hosts the Inter variable font in public/fonts, with its SIL Open Font License alongside it. Builds and page loads do not require a font service. An internet connection and a valid TMDB token are needed for live movie data. YouTube access is needed for trailer playback.
-
-Movie data is provided by TMDB. This product uses the TMDB API but is not endorsed or certified by TMDB.
-
-## Mongolian cinemas
-
-The home page and /in-theaters show current listings from the official Urgoo, Tengis, and Prime Cineplex websites. The /api/local-movies route normalizes only public film fields and caches upstream pages for five minutes. It excludes upcoming films, checks Tengis/Prime dates in Asia/Ulaanbaatar, and keeps providers independent when one source fails. Film cards link to the provider for the final schedule and ticket purchase. These adapters depend on the source sites' markup; if it changes, update lib/local-listings.ts.
-
-The /cinemas page includes 10 verified branches in Ulaanbaatar, Darkhan, and Erdenet. The curated coordinates, source links, and verification date live in lib/cinemas.ts; update them when branches change. Leaflet displays OpenStreetMap tiles with attribution and does not require a paid maps key. Location is requested only after pressing the location button, and distances are calculated in the browser. Location permission requires HTTPS in production (localhost also works). When permission is declined, city, provider, and name filters remain usable. Distances are straight-line estimates; the directions button opens Google Maps.
-
-Run npm test to check local cinema adapters, Mongolia dates, and distance calculations.
+- **Next.js, React** — сайтын бүтэц, хуудас болон ажиллагаа.
+- **TypeScript** — кодын төрлийг шалгаж, алдаа багасгах.
+- **Tailwind CSS, CSS animations** — загвар, өнгө, хөдөлгөөнт эффектүүд.
+- **HeroUI** — товч, карт, таб, шүүлтүүр зэрэг интерфэйсийн бүрдлүүд.
+- **Lucide React** — дүрс тэмдэгтүүд.
+- **Manrope** — кирилл үсэг дэмждэг үндсэн фонт.
+- **Embla Carousel** — киноны постеруудыг гулсуулж үзэх.
+- **Leaflet, OpenStreetMap** — кино театруудыг газрын зураг дээр харуулах.
+- **TMDB API** — киноны мэдээлэл, үнэлгээ, сэтгэгдэл, трейлерийн холбоос.
+- **Cheerio** — кино театруудын сайтаас нийтэд нээлттэй киноны жагсаалтыг унших.
+- **next-themes** — бараан, цайвар горимыг удирдах.
+- **Vercel** — сайтыг интернэтэд байршуулж ажиллуулах.

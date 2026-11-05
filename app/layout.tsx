@@ -6,10 +6,10 @@ import { SiteHeader } from "./_components/SiteHeader";
 import { ContactInfo } from "./_components/Contactinfo";
 import { FilmBackground } from "./_components/FilmBackground";
 
-const inter = localFont({
-  src: "../public/fonts/InterVariable.woff2",
-  variable: "--font-inter",
-  weight: "100 900",
+const manrope = localFont({
+  src: "../public/fonts/Manrope-Variable.ttf",
+  variable: "--font-manrope",
+  weight: "200 800",
   display: "swap",
 });
 
@@ -24,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="mn" className={inter.variable} suppressHydrationWarning>
+    <html lang="mn" className={manrope.variable} suppressHydrationWarning>
       <body className="antialiased">
         <Providers>
           <FilmBackground />
