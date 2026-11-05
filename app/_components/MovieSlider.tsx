@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { Button, Link, Skeleton } from "@heroui/react";
 import Image from "next/image";
-import { ArrowUpRight, ChevronLeft, ChevronRight, Pause, Play, Star } from "lucide-react";
+import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Pause, Play, Star } from "lucide-react";
 import { imageUrl, rating, type MovieResults } from "../../lib/movies";
 import { useMovies } from "./useMovies";
 import { ErrorState } from "./MovieGrid";
 import { TrailerButton } from "./TrailerButton";
 import { MovieReviews } from "./MovieReviews";
 import { useNavigationMotion } from "./NavigationMotion";
+import { formatMovieDate, validMovieDate } from "../../lib/movie-dates";
 
 export function MovieSlider() {
   const { open: navigationOpen } = useNavigationMotion();
@@ -48,7 +49,7 @@ export function MovieSlider() {
       <div className="hero-content" key={movie.id}>
         <p className="hero-kicker">Киноны сангаас онцлох <span className="kicker-divider" /> TMDB</p>
         <h1 className="hero-title">{movie.title}</h1>
-        <div className="hero-meta"><span className="hero-score"><Star size={14} />{rating(movie.vote_average)}<small>/10</small></span><span className="meta-dot" />{movie.release_date?.slice(0, 4) || "Нээлтийн огноо тодорхойгүй"}</div>
+        <div className="hero-meta"><span className="hero-score"><Star size={14} />{rating(movie.vote_average)}<small>/10</small></span><span className="hero-release-date"><CalendarDays size={14} aria-hidden="true" />Нээлт (TMDB): {validMovieDate(movie.release_date) ? <time dateTime={movie.release_date}>{formatMovieDate(movie.release_date)}</time> : "тодорхойгүй"}</span></div>
         {movie.overview && <p className="hero-overview">{movie.overview}</p>}
         <div className="hero-actions"><TrailerButton key={movie.id} movieId={movie.id} title={movie.title} onOpenChange={setTrailerOpen} /><Link href={"/movie/" + movie.id} className="button button-glass">Дэлгэрэнгүй <ArrowUpRight size={16} /></Link></div>
       </div>

@@ -8,6 +8,7 @@ import { ArrowUpRight, Clapperboard, RefreshCw, Search } from "lucide-react";
 import { imageUrl, posterSizes, type Movie } from "../../lib/movies";
 import { PosterSkeleton } from "./ui/PosterSkeleton";
 import { MovieRating } from "./ui/MovieRating";
+import { formatMovieDate, validMovieDate } from "../../lib/movie-dates";
 
 export function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }) {
   const [failed, setFailed] = useState(false);
@@ -17,7 +18,7 @@ export function MovieCard({ movie, index = 0 }: { movie: Movie; index?: number }
       {poster && !failed ? <Image src={poster} alt={movie.title + " киноны постер"} fill sizes={posterSizes} onError={() => setFailed(true)} /> : <div className="poster-fallback"><Clapperboard size={34} /><span>Киноны зураг байхгүй</span></div>}
       <span className="poster-overlay"><span>Дэлгэрэнгүй <ArrowUpRight size={15} /></span></span>
     </div>
-    <Card.Content className="movie-card-info"><Card.Title>{movie.title}</Card.Title><Card.Description>{movie.release_date?.slice(0, 4) || "Огноо тодорхойгүй"}</Card.Description><MovieRating score={movie.vote_average} voteCount={movie.vote_count} source="TMDB" /></Card.Content>
+    <Card.Content className="movie-card-info"><Card.Title><span>{movie.title}</span></Card.Title><Card.Description className="movie-release-date">{validMovieDate(movie.release_date) ? <time dateTime={movie.release_date} title="Нээлтийн огноо · TMDB"><span className="sr-only">Нээлт (TMDB): </span>{formatMovieDate(movie.release_date)}</time> : "Огноо тодорхойгүй"}</Card.Description><MovieRating score={movie.vote_average} voteCount={movie.vote_count} source="TMDB" /></Card.Content>
   </Card>;
 }
 

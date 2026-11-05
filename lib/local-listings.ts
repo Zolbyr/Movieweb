@@ -1,5 +1,6 @@
 import { load } from "cheerio";
 import { mongoliaDate, type LocalMovie, type ProviderId } from "./cinemas";
+import { cinemaOpeningDate } from "./movie-dates";
 
 function safeUrl(value: string | undefined, base: string, hosts: string[]) {
   if (!value) return null;
@@ -24,6 +25,7 @@ export function parseTengis(html: string, today = mongoliaDate()): LocalMovie[] 
       title: movie.title.trim(),
       poster: safeUrl(movie.verticalPosterUrl, "https://www.tengis.mn", ["www.tengis.mn"]),
       url, provider: "tengis", rating: typeof movie.rating === "string" ? movie.rating : undefined,
+      releaseDate: cinemaOpeningDate(movie.nationalOpenDate) || cinemaOpeningDate(movie.openDate),
     });
   }
   return movies;

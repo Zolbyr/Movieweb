@@ -13,6 +13,7 @@ export type LocalMovie = {
   provider: ProviderId;
   rating?: string;
   format?: string;
+  releaseDate?: string;
 };
 export type LocalListing = {
   provider: ProviderId;

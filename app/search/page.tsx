@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Link } from "@heroui/react";
 import { ArrowLeft } from "lucide-react";
@@ -10,16 +10,18 @@ import { EmptyState, ErrorState, MovieGrid } from "../_components/MovieGrid";
 import { GenreFilters } from "../_components/Catalog";
 import { Pagination } from "../_components/Pagination";
 import { PageHeading } from "../_components/ui/PageHeading";
+import { useUrlPagination } from "../_components/useUrlPagination";
 
 function Results({ query }: { query: string }) {
-  const [page, setPage] = useState(1);
+  const { page, setPage, pending } = useUrlPagination();
   const { data, error, loading, retry } = useMovies<MovieResults>(query ? "search/movie?query=" + encodeURIComponent(query) + "&page=" + page : null);
   const totalPages = Math.max(1, Math.min(data?.total_pages || 1, 500));
+  const busy = loading || pending;
   return <>
     <PageHeading id="results-top" eyebrow="Хайлт" title={query ? "Хайлтын үр дүн" : "Кино хайх"} description={query ? <><strong>“{query}”</strong> нэрээр олдсон кинонууд.</> : "Киноны нэрээр эсвэл төрлөөр нь хайна уу."} />
-    {query && <><div className="results-caption" role="status"><span>{loading ? "Хайж байна…" : error ? "Хайлт түр ажиллахгүй байна" : (data?.total_results || 0).toLocaleString() + " үр дүн"}</span><span>Хуудас {page}</span></div>
-      {error ? <ErrorState message={error} retry={retry} /> : !loading && !data?.results?.length ? <EmptyState message={"“" + query + "” нэрээр кино олдсонгүй. Өөр нэрээр хайна уу."} /> : <MovieGrid key={page} loading={loading} movies={data?.results} count={20} />}
-      {!loading && !error && <Pagination page={page} totalPages={totalPages} onChange={setPage} />}</>}
+    {query && <div className="catalog-results" aria-busy={busy}><div className="results-caption" role="status"><span>{busy ? "Хайж байна…" : error ? "Хайлт түр ажиллахгүй байна" : (data?.total_results || 0).toLocaleString() + " үр дүн"}</span><span>Хуудас {page}</span></div>
+      {busy ? <MovieGrid loading count={20} /> : error ? <ErrorState message={error} retry={retry} /> : !data?.results?.length ? <EmptyState message={"“" + query + "” нэрээр кино олдсонгүй. Өөр нэрээр хайна уу."} /> : <MovieGrid key={page} movies={data?.results} />}
+      {!busy && !error && <Pagination page={page} totalPages={totalPages} onChange={setPage} />}</div>}
     <GenreFilters />
   </>;
 }

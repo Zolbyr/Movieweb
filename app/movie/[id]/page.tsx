@@ -10,10 +10,13 @@ import { ErrorState, MovieCard } from "../../_components/MovieGrid";
 import { TrailerButton } from "../../_components/TrailerButton";
 import { MovieReviews } from "../../_components/MovieReviews";
 import { RevolverShelf } from "../../_components/RevolverShelf";
+import { MovieCinemaAvailability } from "../../_components/MovieCinemaAvailability";
+import { formatMovieDate, latestMongoliaTheatricalDate, validMovieDate } from "../../../lib/movie-dates";
+import { mongoliaDate } from "../../../lib/cinemas";
 
 function Detail({ id }: { id: string }) {
   const valid = /^[1-9]\d*$/.test(id);
-  const { data: movie, loading, error, retry } = useMovies<MovieDetail>(valid ? "movie/" + id + "?append_to_response=credits,videos,similar&language=en-US" : null);
+  const { data: movie, loading, error, retry } = useMovies<MovieDetail>(valid ? "movie/" + id + "?append_to_response=credits,videos,similar,release_dates&language=en-US" : null);
   if (loading) return <div className="site-container detail-loading" role="status" aria-label="Киноны дэлгэрэнгүй мэдээллийг ачаалж байна"><Skeleton className="detail-title-skeleton" /><Skeleton className="detail-image-skeleton" /><Skeleton className="skeleton-title" /><span className="sr-only">Киноны дэлгэрэнгүй мэдээллийг ачаалж байна…</span></div>;
   if (error || !movie || !valid) return <div className="site-container catalog-page"><Link className="back-link" href="/"><ArrowLeft size={15} />Нүүр хуудас</Link><ErrorState message={error || "Энэ киноны мэдээлэл олдсонгүй. Өөр кино хайна уу."} retry={valid ? retry : undefined} /></div>;
 
@@ -22,6 +25,7 @@ function Detail({ id }: { id: string }) {
   const cast = movie.credits?.cast?.slice(0, 5).map((person) => person.name).join(", ");
   const trailer = movie.videos?.results?.find((video) => video.site === "YouTube" && video.type === "Trailer");
   const year = movie.release_date?.slice(0, 4);
+  const mongoliaRelease = latestMongoliaTheatricalDate(movie.release_dates, mongoliaDate());
   const backdrop = imageUrl(movie.backdrop_path, "w1280");
   const poster = imageUrl(movie.poster_path);
   return <>
@@ -37,11 +41,12 @@ function Detail({ id }: { id: string }) {
           <div className="genre-options">{movie.genres?.map((genre) => { const item = genres.find((candidate) => candidate.id === genre.id); return item ? <Link className="genre-pill" key={genre.id} href={"/genre/" + item.slug}>{genreLabels[item.slug] || genre.name}<ArrowUpRight size={11} /></Link> : <span className="genre-pill" key={genre.id}>{genre.name}</span>; })}</div>
           <h2>Товч агуулга</h2><p className="synopsis">{movie.overview || "Энэ киноны товч агуулга олдсонгүй."}</p>
           <TrailerButton movieId={movie.id} title={movie.title} videoKey={trailer?.key} />
-          <dl className="movie-credits">{director && <div><dt>Найруулагч</dt><dd>{director}</dd></div>}{writers && <div><dt>Кино зохиолч</dt><dd>{writers}</dd></div>}{cast && <div><dt>Жүжигчид</dt><dd>{cast}</dd></div>}<div><dt>Үнэлгээ</dt><dd>{rating(movie.vote_average)} / 10 <span className="muted">· {(movie.vote_count || 0).toLocaleString()} үнэлгээ</span></dd></div></dl>
+          <dl className="movie-credits"><div><dt>Нээлт (TMDB)</dt><dd>{validMovieDate(movie.release_date) ? <time dateTime={movie.release_date}>{formatMovieDate(movie.release_date)}</time> : "Огноо тодорхойгүй"}</dd></div>{mongoliaRelease && <div><dt>Монгол дахь сүүлийн нээлт</dt><dd><time dateTime={mongoliaRelease}>{formatMovieDate(mongoliaRelease)}</time> <span className="muted">· Кино театр · TMDB</span></dd></div>}{director && <div><dt>Найруулагч</dt><dd>{director}</dd></div>}{writers && <div><dt>Кино зохиолч</dt><dd>{writers}</dd></div>}{cast && <div><dt>Жүжигчид</dt><dd>{cast}</dd></div>}<div><dt>Үнэлгээ</dt><dd>{rating(movie.vote_average)} / 10 <span className="muted">· {(movie.vote_count || 0).toLocaleString()} үнэлгээ</span></dd></div></dl>
         </div>
       </div>
       <MovieReviews key={movie.id} movieId={movie.id} title={movie.title} />
       </div>
+      <MovieCinemaAvailability title={movie.title} originalTitle={movie.original_title} />
       {!!movie.similar?.results?.length && <section className="movie-section"><RevolverShelf<Movie> items={movie.similar.results} label="Төстэй кинонууд" heading={<h2>Төстэй кинонууд</h2>} renderItem={(item, index) => <MovieCard movie={item} index={index} />} /></section>}
     </div>
   </>;

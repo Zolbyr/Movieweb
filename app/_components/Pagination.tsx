@@ -9,7 +9,9 @@ export function Pagination({ page, totalPages, onChange }: { page: number; total
   const pages = [...new Set([1, ...Array.from({ length: 5 }, (_, index) => page - 2 + index).filter((value) => value > 0 && value <= totalPages), totalPages])].sort((a, b) => a - b);
   const change = (value: number) => {
     onChange(value);
-    document.getElementById("results-top")?.scrollIntoView({ block: "start", behavior: "auto" });
+    const heading = document.getElementById("results-top");
+    heading?.scrollIntoView({ block: "start", behavior: "auto" });
+    heading?.focus({ preventScroll: true });
   };
   return <UIPagination className="movie-pagination" size="sm" aria-label="Киноны жагсаалтын хуудас">
     <UIPagination.Content>

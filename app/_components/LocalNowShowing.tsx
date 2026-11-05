@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button, Card, Chip, Link, Tabs } from "@heroui/react";
 import Image from "next/image";
-import { ArrowUpRight, Clapperboard, Clock3, MapPin, RefreshCw } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Clapperboard, Clock3, MapPin, RefreshCw } from "lucide-react";
 import { cinemaProviders, cinemaDateLabel, type LocalListingsResponse, type LocalMovie, type ProviderId } from "../../lib/cinemas";
 import { posterSizes } from "../../lib/movies";
 import { PosterSkeleton } from "./ui/PosterSkeleton";
@@ -11,6 +11,7 @@ import { RevolverShelf } from "./RevolverShelf";
 import { CinemaBrand } from "./ui/CinemaBrand";
 import { useScrollScene } from "./useScrollScene";
 import { MovieRating } from "./ui/MovieRating";
+import { formatMovieDate } from "../../lib/movie-dates";
 
 function LocalMovieCard({ movie, index }: { movie: LocalMovie; index: number }) {
   const [failed, setFailed] = useState(false);
@@ -19,8 +20,9 @@ function LocalMovieCard({ movie, index }: { movie: LocalMovie; index: number }) 
       {movie.poster && !failed ? <Image src={movie.poster} alt={movie.title + " киноны постер"} fill sizes={posterSizes} onError={() => setFailed(true)} /> : <div className="poster-fallback"><Clapperboard size={30} /><span>Киноны зураг байхгүй</span></div>}
       <span className="poster-overlay"><span>Хуваарь, тасалбар <ArrowUpRight size={15} /></span></span>
     </div>
-    <Card.Title>{movie.title}</Card.Title>
-    <Card.Description>{movie.rating && <Chip size="sm" variant="soft" className="age-rating">{movie.rating}</Chip>}Хуваарь, тасалбар <ArrowUpRight size={13} /></Card.Description>
+    <Card.Title><span>{movie.title}</span></Card.Title>
+    <Card.Description>{movie.rating && <Chip size="sm" variant="soft" className="age-rating">{movie.rating}</Chip>}<span className="local-ticket-label">Хуваарь, тасалбар <ArrowUpRight size={13} /></span></Card.Description>
+    <div className="local-card-facts"><CinemaBrand provider={movie.provider} /><span className="local-showing-label">Өнөөдөр дэлгэцнээ</span><span className="local-release-date"><CalendarDays size={12} aria-hidden="true" />{movie.releaseDate ? <>Нээлт: <time dateTime={movie.releaseDate}>{formatMovieDate(movie.releaseDate)}</time></> : "Нээлтийн огноо тодорхойгүй"}</span></div>
     <MovieRating />
   </Card>;
 }

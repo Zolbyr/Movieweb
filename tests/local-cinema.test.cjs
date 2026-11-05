@@ -18,7 +18,9 @@ function loadSource(file, dependencies = {}) {
 }
 
 const geo = loadSource("lib/cinemas.ts");
-const { parseTengis, parseUrgoo, parsePrime } = loadSource("lib/local-listings.ts", { "./cinemas": geo });
+const dates = loadSource("lib/movie-dates.ts");
+const { parseTengis, parseUrgoo, parsePrime } = loadSource("lib/local-listings.ts", { "./cinemas": geo, "./movie-dates": dates });
+const { findLocalShowings } = loadSource("lib/local-showings.ts", { "./cinemas": geo });
 const today = "2026-10-30";
 
 test("Tengis lists only the requested Mongolia date and strips upstream private fields", () => {
@@ -41,6 +43,47 @@ test("Urgoo excludes upcoming films and extracts an actual portrait", () => {
   assert.equal(result[0].title, "Одоо");
   assert.equal(result[0].poster, "https://media.urgoo.oneline.mn/films/HO1/portrait-poster.webp");
   assert.equal(result[0].url, "https://new.urgoo.mn/movies/HO1");
+});
+
+test("Cinema opening dates preserve Mongolia's calendar day and reject invalid dates", () => {
+  assert.equal(dates.cinemaOpeningDate("2026-10-29T16:00:00.000Z"), "2026-10-30");
+  assert.equal(dates.cinemaOpeningDate("2026-10-30T00:00:00+08:00"), "2026-10-30");
+  assert.equal(dates.cinemaOpeningDate("2026-10-30"), "2026-10-30");
+  assert.equal(dates.validMovieDate("2024-02-29"), "2024-02-29");
+  for (const value of ["2026-02-29", "2026-04-31", "2026-13-01", "yesterday", "", null, 0]) {
+    assert.equal(dates.cinemaOpeningDate(value), undefined);
+    assert.equal(dates.validMovieDate(value), null);
+  }
+  assert.equal(dates.cinemaOpeningDate("2026-10-30T00:00:00"), undefined, "Do not guess the source timezone");
+});
+
+test("Tengis opening dates come from release metadata, not the listing's update time", () => {
+  const movie = { id: "1", title: "Кино", slug: "film", status: "ENABLED", nationalOpenDate: "2026-10-29T16:00:00Z", updatedAt: "2026-10-30T20:00:00Z" };
+  const html = (value) => '<script id="__NEXT_DATA__">' + JSON.stringify({ props: { pageProps: { repo: { ongoings: [{ day: today, movies: [value] }] } } } }) + '</script>';
+  assert.equal(parseTengis(html(movie), today)[0].releaseDate, "2026-10-30");
+  assert.equal(parseTengis(html({ ...movie, nationalOpenDate: null }), today)[0].releaseDate, undefined);
+});
+
+test("Movie showings match exact titles and aliases only in available current listings", () => {
+  const film = { id: "prime-1", provider: "prime", title: "Godzilla: Minus Zero IMAX", url: "https://www.primecineplex.mn/", poster: null };
+  const listing = { provider: "prime", available: true, date: today, movies: [film] };
+  assert.equal(findLocalShowings(["Godzilla Minus Zero"], [listing], today).length, 1);
+  assert.equal(findLocalShowings(["Монгол нэр", "Godzilla: Minus Zero"], [listing], today).length, 1);
+  assert.equal(findLocalShowings(["Godzilla"], [listing], today).length, 0, "Partial names must not match another film");
+  assert.equal(findLocalShowings([film.title], [{ ...listing, available: false }], today).length, 0);
+  assert.equal(findLocalShowings([film.title], [{ ...listing, date: "2026-10-29" }], today).length, 0);
+  assert.equal(findLocalShowings(["", "!!!"], [listing], today).length, 0);
+});
+
+test("Latest Mongolia cinema release excludes future, digital, and other-country dates", () => {
+  const release = (release_date, type = 3) => ({ release_date, type });
+  const data = { results: [
+    { iso_3166_1: "MN", release_dates: [release("2026-09-01T00:00:00Z"), release("2026-10-15T00:00:00Z", 2), release("2026-10-25T00:00:00Z", 4), release("2026-12-01T00:00:00Z"), release("bad-date")] },
+    { iso_3166_1: "US", release_dates: [release("2026-10-29T00:00:00Z")] },
+  ] };
+  assert.equal(dates.latestMongoliaTheatricalDate(data, today), "2026-10-15");
+  assert.equal(dates.latestMongoliaTheatricalDate(data, "2026-08-01"), undefined);
+  assert.equal(dates.latestMongoliaTheatricalDate(undefined, today), undefined);
 });
 
 test("Cinema adapters reject changed markup instead of fabricating listings", () => {

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Button, Link, Popover } from "@heroui/react";
 import { usePathname } from "next/navigation";
-import { ChevronDown, ChevronRight, Clapperboard, LayoutGrid, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Clapperboard, Film, House, LayoutGrid, MapPin, X } from "lucide-react";
 import { genres, genreLabels } from "../../lib/movies";
 import { MovieSearch } from "./MovieSearch";
 import { SwitchDemo } from "./Switcher";
@@ -12,6 +12,13 @@ import { useNavigationMotion } from "./NavigationMotion";
 export function SiteHeader() {
   const pathname = usePathname();
   const { open, setOpen } = useNavigationMotion();
+  const libraryActive = ["/popular", "/upcoming", "/top-rated", "/search"].includes(pathname) || pathname.startsWith("/genre/") || pathname.startsWith("/movie/");
+  const navigation = [
+    { href: "/", title: "Нүүр", icon: House, active: pathname === "/" },
+    { href: "/in-theaters", title: "Дэлгэцнээ", icon: Clapperboard, active: pathname === "/in-theaters" },
+    { href: "/popular", title: "Киноны сан", icon: Film, active: libraryActive },
+    { href: "/cinemas", title: "Кино театрууд", icon: MapPin, active: pathname === "/cinemas" },
+  ];
 
   useEffect(() => { setOpen(false); }, [pathname, setOpen]);
 
@@ -23,8 +30,8 @@ export function SiteHeader() {
           Movie <span className="brand-z">Z</span>
         </Link>
         <nav className="desktop-nav" aria-label="Үндсэн цэс">
-          {[["/in-theaters", "Дэлгэцнээ"], ["/popular", "Киноны сан"], ["/cinemas", "Кино театрууд"]].map(([href, title]) => (
-            <Link key={href} href={href} className={pathname === href || (href === "/in-theaters" && pathname === "/") ? "nav-link active" : "nav-link"} aria-current={pathname === href || (href === "/in-theaters" && pathname === "/") ? "page" : undefined}>{title}</Link>
+          {navigation.map(({ href, title, icon: Icon, active }) => (
+            <Link key={href} href={href} className={active ? "nav-link active" : "nav-link"} aria-current={active ? "page" : undefined}><Icon className="nav-icon" size={20} aria-hidden="true" /><span>{title}</span></Link>
           ))}
         </nav>
         <div className="genre-menu">
