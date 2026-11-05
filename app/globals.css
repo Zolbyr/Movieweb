@@ -111,7 +111,7 @@
 /* Shared layout and typography */
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 110px; }
-body { margin: 0; font-family: var(--font-inter), Arial, sans-serif; font-size: 15px; line-height: 1.6; font-weight: 400; -webkit-font-smoothing: antialiased; background-image: linear-gradient(90deg, var(--surface-line) 1px, transparent 1px); background-size: 80px 100%; }
+body { margin: 0; isolation: isolate; font-family: var(--font-inter), Arial, sans-serif; font-size: 15px; line-height: 1.6; font-weight: 400; -webkit-font-smoothing: antialiased; background-image: linear-gradient(90deg, var(--surface-line) 1px, transparent 1px); background-size: 80px 100%; }
 button, input, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 button { cursor: pointer; }
@@ -140,6 +140,29 @@ main { min-height: 65vh; }
 .icon-button { height: 36px; width: 36px; display: grid; place-items: center; flex-shrink: 0; background: transparent; color: var(--muted-foreground); border: 1px solid transparent; border-radius: 5px; }
 .icon-button:hover { color: var(--foreground); background: var(--surface-muted); }
 .meta-dot { height: 3px; width: 3px; display: inline-block; border-radius: 50%; background: currentColor; opacity: .6; flex-shrink: 0; }
+
+/* A quiet, seamless cinema wall sits behind the entire interface. */
+.film-background { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; contain: strict; background: var(--background); }
+.film-background-wall { position: absolute; inset: -32vh -15vw; display: flex; flex-direction: column; justify-content: center; gap: 20px; transform: rotate(-12deg); opacity: .42; }
+.film-background-row { display: flex; flex: 0 0 auto; width: max-content; animation: film-drift 150s linear infinite; will-change: transform; }
+.film-background-row-1, .film-background-row-3 { animation-direction: reverse; }
+.film-background-row-1 { animation-duration: 180s; }
+.film-background-row-2 { animation-duration: 165s; }
+.film-background-row-3 { animation-duration: 195s; }
+.film-background-run { display: flex; gap: 20px; padding-right: 20px; }
+.film-background-poster { display: block; flex: 0 0 auto; width: max(120px, 12vw); height: auto; aspect-ratio: 2/3; object-fit: cover; border: 1px solid #ffffff18; border-radius: 8px; background: #1e1e22; }
+/* Fixed-color layers avoid repainting a viewport-sized gradient on every theme change. */
+.film-background-shade, .film-background-shade::before, .film-background-shade::after { position: absolute; inset: 0; }
+.film-background-shade::before, .film-background-shade::after { content: ""; }
+.film-background-shade::before { background: linear-gradient(90deg, #14141673, #141416d1 30%, #141416d1 70%, #14141673), linear-gradient(180deg, #1414168c, transparent 35%, #14141673); }
+.film-background-shade::after { opacity: 0; background: linear-gradient(90deg, #f8f8f773, #f8f8f7d1 30%, #f8f8f7d1 70%, #f8f8f773), linear-gradient(180deg, #f8f8f78c, transparent 35%, #f8f8f773); }
+.light .film-background-shade::before { opacity: 0; }
+.light .film-background-shade::after { opacity: 1; }
+.film-background[data-paused="true"] .film-background-row { animation-play-state: paused; }
+.film-motion-toggle.button { position: fixed; z-index: 30; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); width: 40px; min-width: 40px; min-height: 40px; padding: 0; border: 1px solid var(--border); border-radius: 50%; background: var(--card); color: var(--muted-foreground); box-shadow: 0 3px 15px #0002; }
+.film-motion-toggle.button:hover { color: var(--foreground); border-color: var(--muted-foreground); }
+.light .film-background-wall { opacity: .23; }
+@keyframes film-drift { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
 
 /* Navigation */
 .site-header { position: sticky; top: 0; z-index: 40; background: var(--background); background: color-mix(in srgb, var(--background) 93%, transparent); backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); }
@@ -557,6 +580,21 @@ a.genre-pill:hover, .genre-pill.selected { color: var(--foreground); border-colo
 .detail-content-layout .genre-options { gap: 6px; }
 
 /* Trackpad, touch, and pointer movement follow a continuous curved film track. */
+.scroll-scene { --scroll-depth: 0; transform: perspective(1400px) translate3d(0, calc(var(--scroll-depth) * 24px), calc(var(--scroll-depth) * -36px)) rotateX(calc(var(--scroll-depth) * 5deg)); transform-origin: 50% 20%; }
+.scroll-scene[data-scene-visible] { will-change: transform; }
+.scroll-scene:focus-within { transform: none; }
+.cinema-brand { display: inline-flex; align-items: center; gap: 9px; min-width: 0; vertical-align: middle; }
+.cinema-brand > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cinema-logo { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 58px; height: 30px; padding: 5px; border: 1px solid #ffffff1a; border-radius: 5px; background: #19191b; }
+.cinema-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.cinema-logo-tengis, .cinema-logo-prime { background: #fff; border-color: #dededc; }
+.local-source-line .cinema-brand { gap: 5px; }
+.local-source-line .cinema-logo, .map-legend .cinema-logo { width: 38px; height: 22px; padding: 3px; }
+.cinema-result-select .cinema-result-brand { display: flex; align-items: center; gap: 7px; }
+.cinema-result-brand .cinema-logo { width: 45px; height: 25px; padding: 4px; }
+.cinema-select .cinema-brand, .cinema-select-popover .cinema-brand { gap: 7px; }
+.cinema-select .cinema-logo, .cinema-select-popover .cinema-logo { width: 40px; height: 25px; padding: 4px; }
+.cinema-select .select__indicator { flex-shrink: 0; }
 .revolver-shelf { min-width: 0; --shelf-columns: 6; --shelf-gap: 18px; }
 .revolver-shelf .section-heading { align-items: center; flex-wrap: wrap; }
 .revolver-shelf .section-heading h2 { flex: 1; }
@@ -619,7 +657,13 @@ a.genre-pill:hover, .genre-pill.selected { color: var(--foreground); border-colo
 }
 
 @media (max-width: 640px) {
-  .provider-tabs [role="tab"] { font-size: 12px; padding: 8px 12px; }
+  .provider-tabs [role="tab"] { font-size: 12px; padding: 8px; }
+  .provider-tabs .cinema-brand { gap: 6px; }
+  .provider-tabs .cinema-logo { width: 37px; height: 26px; padding: 4px; }
+  .provider-tabs-shell { width: 100%; overflow-x: auto; scrollbar-width: thin; }
+  .provider-tabs { min-width: max-content; }
+  .cinema-select .cinema-brand { gap: 5px; }
+  .cinema-select .cinema-logo { width: 30px; height: 22px; padding: 3px; }
   .provider-tabs { gap: 2px; }
   .cinema-search-field { grid-column: 1/-1; }
   .cinema-select .select__trigger { padding-inline: 10px; font-size: 12px; }
@@ -782,6 +826,9 @@ a.genre-pill:hover, .genre-pill.selected { color: var(--foreground); border-colo
 }
 @media (hover: none) { .poster-overlay { display: none; } }
 @media (prefers-reduced-motion: reduce) {
+  .film-background .film-background-row { animation: none; will-change: auto; }
+  .film-motion-toggle.button { display: none; }
+  .scroll-scene { transform: none; will-change: auto; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }

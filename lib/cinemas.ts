@@ -1,7 +1,7 @@
 export const cinemaProviders = [
-  { id: "urgoo", name: "Өргөө", possessive: "Өргөөгийн", url: "https://new.urgoo.mn/", scheduleUrl: "https://new.urgoo.mn/schedule", color: "#3979e5" },
-  { id: "tengis", name: "Тэнгис", possessive: "Тэнгисийн", url: "https://www.tengis.mn/", scheduleUrl: "https://www.tengis.mn/#movies", color: "#8454d9" },
-  { id: "prime", name: "Prime Cineplex", possessive: "Prime Cineplex-ийн", url: "https://www.primecineplex.mn/", scheduleUrl: "https://www.primecineplex.mn/", color: "#cb5546" },
+  { id: "urgoo", name: "Өргөө", possessive: "Өргөөгийн", logo: "/cinemas/urgoo.svg", url: "https://new.urgoo.mn/", scheduleUrl: "https://new.urgoo.mn/schedule", color: "#3979e5" },
+  { id: "tengis", name: "Тэнгис", possessive: "Тэнгисийн", logo: "/cinemas/tengis.webp", url: "https://www.tengis.mn/", scheduleUrl: "https://www.tengis.mn/#movies", color: "#8454d9" },
+  { id: "prime", name: "Prime Cineplex", possessive: "Prime Cineplex-ийн", logo: "/cinemas/prime.png", url: "https://www.primecineplex.mn/", scheduleUrl: "https://www.primecineplex.mn/", color: "#cb5546" },
 ] as const;
 
 export type ProviderId = (typeof cinemaProviders)[number]["id"];

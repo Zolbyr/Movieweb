@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  return <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="movie-z-theme">
+  return <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="movie-z-theme" disableTransitionOnChange>
     <I18nProvider locale="mn-MN">
       <RouterProvider navigate={(href) => router.push(href)}>{children}</RouterProvider>
     </I18nProvider>

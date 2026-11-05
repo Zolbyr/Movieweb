@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { Providers } from "./providers";
 import { SiteHeader } from "./_components/SiteHeader";
 import { ContactInfo } from "./_components/Contactinfo";
+import { FilmBackground } from "./_components/FilmBackground";
 
 const inter = localFont({
   src: "../public/fonts/InterVariable.woff2",
@@ -26,6 +27,7 @@ export default function RootLayout({
     <html lang="mn" className={inter.variable} suppressHydrationWarning>
       <body className="antialiased">
         <Providers>
+          <FilmBackground />
           <a href="#main-content" className="skip-link">Үндсэн хэсэг рүү очих</a>
           <SiteHeader />
           <main id="main-content">{children}</main>

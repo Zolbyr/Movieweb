@@ -57,7 +57,7 @@ export function RevolverShelf<T>({ items, label, renderItem, heading, footer, gr
       });
       frames.forEach(({ node, distance }) => {
         if (!node) return;
-        node.style.transform = reducedMotion ? "none" : "perspective(1000px) rotateY(" + (-distance * 12).toFixed(2) + "deg) translateY(" + (Math.abs(distance) * 5).toFixed(2) + "px) scale(" + (1 - Math.abs(distance) * .025).toFixed(3) + ")";
+        node.style.transform = reducedMotion ? "none" : "perspective(1100px) translateZ(" + (-Math.abs(distance) * 32).toFixed(2) + "px) rotateY(" + (-distance * 18).toFixed(2) + "deg) translateY(" + (Math.abs(distance) * 7).toFixed(2) + "px) scale(" + (1 - Math.abs(distance) * .025).toFixed(3) + ")";
       });
     };
     const onPointerDown = () => { interacted.current = true; };
